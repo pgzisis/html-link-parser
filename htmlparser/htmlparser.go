@@ -2,49 +2,75 @@ package htmlparser
 
 import (
 	"io"
-	"log"
 	"strings"
 
 	"golang.org/x/net/html"
 )
 
+// Link represents a link (<a href="...">) in an HTML
+// document.
 type Link struct {
 	Href string
 	Text string
 }
 
-func newLink(href, text string) Link {
-	return Link{Href: href, Text: text}
-}
-
-// Parse returns a list of links out of an html file
-func Parse(file io.Reader) []Link {
-	doc, err := html.Parse(file)
+// Parse will take in an HTML document and will return a
+// slice of links parsed from it.
+func Parse(r io.Reader) ([]Link, error) {
+	doc, err := html.Parse(r)
 	if err != nil {
-		log.Fatalln(err)
+		return nil, err
 	}
+
+	nodes := linkNodes(doc)
 
 	var links []Link
-
-	var f func(*html.Node)
-	f = func(n *html.Node) {
-		if n.Type == html.ElementNode && n.Data == "a" {
-			for _, a := range n.Attr {
-				if a.Key == "href" {
-					href, text := strings.TrimSpace(a.Val), strings.TrimSpace(n.FirstChild.Data)
-					link := newLink(href, text)
-					links = append(links, link)
-
-					break
-				}
-			}
-		}
-		for c := n.FirstChild; c != nil; c = c.NextSibling {
-			f(c)
-		}
+	for _, node := range nodes {
+		links = append(links, buildLink(node))
 	}
 
-	f(doc)
+	return links, nil
+}
 
-	return links
+func buildLink(n *html.Node) Link {
+	var ret Link
+	for _, attr := range n.Attr {
+		if attr.Key == "href" {
+			ret.Href = attr.Val
+			break
+		}
+	}
+	ret.Text = text(n)
+
+	return ret
+}
+
+func text(n *html.Node) string {
+	if n.Type == html.TextNode {
+		return n.Data
+	}
+
+	if n.Type != html.ElementNode {
+		return ""
+	}
+
+	var ret string
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		ret += text(c)
+	}
+
+	return strings.Join(strings.Fields(ret), " ")
+}
+
+func linkNodes(n *html.Node) []*html.Node {
+	if n.Type == html.ElementNode && n.Data == "a" {
+		return []*html.Node{n}
+	}
+
+	var ret []*html.Node
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		ret = append(ret, linkNodes(c)...)
+	}
+
+	return ret
 }

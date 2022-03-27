@@ -17,7 +17,7 @@ func TestEx1(t *testing.T) {
 	}
 	defer file.Close()
 
-	result := Parse(file)
+	result, _ := Parse(file)
 
 	if !reflect.DeepEqual(want, result) {
 		t.Fatalf("Result: %v is not equal to wanted: %v", result, want)
@@ -28,7 +28,7 @@ func TestEx1(t *testing.T) {
 func TestEx2(t *testing.T) {
 	want := []Link{
 		{Href: "https://www.twitter.com/joncalhoun", Text: "Check me out on twitter"},
-		{Href: "https://github.com/gophercises", Text: "Gophercises is on"},
+		{Href: "https://github.com/gophercises", Text: "Gophercises is on Github!"},
 	}
 
 	file, err := os.Open("../ex2.html")
@@ -37,7 +37,7 @@ func TestEx2(t *testing.T) {
 	}
 	defer file.Close()
 
-	result := Parse(file)
+	result, _ := Parse(file)
 
 	if !reflect.DeepEqual(want, result) {
 		t.Fatalf("Result: %v is not equal to wanted: %v", result, want)
@@ -58,7 +58,7 @@ func TestEx3(t *testing.T) {
 	}
 	defer file.Close()
 
-	result := Parse(file)
+	result, _ := Parse(file)
 
 	if !reflect.DeepEqual(want, result) {
 		t.Fatalf("Result: %v is not equal to wanted: %v", result, want)
@@ -75,7 +75,7 @@ func TestEx4(t *testing.T) {
 	}
 	defer file.Close()
 
-	result := Parse(file)
+	result, _ := Parse(file)
 
 	if !reflect.DeepEqual(want, result) {
 		t.Fatalf("Result: %v is not equal to wanted: %v", result, want)
